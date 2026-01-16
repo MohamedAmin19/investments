@@ -1,0 +1,30 @@
+package com.Investment.Investment.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class InvestmentResponse {
+    private String id;
+    private String firstName;
+    private String middleName;
+    private String lastName;
+    private Integer age;
+    private String mobileNumber;
+    private String emailAddress;
+    private String profession;
+    private String professionOther;
+    private String investmentBackground;
+    private List<String> currentInvestments;
+    private String mostInterestedIn;
+    private Long createdAt;
+    private Long updatedAt;
+}
+

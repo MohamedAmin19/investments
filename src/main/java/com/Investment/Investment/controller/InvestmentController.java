@@ -1,0 +1,118 @@
+package com.Investment.Investment.controller;
+
+import com.Investment.Investment.dto.InvestmentRequest;
+import com.Investment.Investment.dto.InvestmentResponse;
+import com.Investment.Investment.dto.PaginatedResponse;
+import com.Investment.Investment.service.FirebaseService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/investments")
+@CrossOrigin(origins = "*")
+public class InvestmentController {
+
+    @Autowired
+    private FirebaseService firebaseService;
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createInvestment(@Valid @RequestBody InvestmentRequest request) {
+        try {
+            if ("Other".equalsIgnoreCase(request.getProfession()) && 
+                (request.getProfessionOther() == null || request.getProfessionOther().trim().isEmpty())) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "professionOther is required when profession is 'Other'");
+                errorResponse.put("message", "If profession is 'Other', you must provide a value for professionOther");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            String id = firebaseService.saveInvestment(request);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Investment data saved successfully");
+            response.put("id", id);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Failed to save investment data");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllInvestments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            // Validate pagination parameters
+            if (page < 0) {
+                page = 0;
+            }
+            if (size < 1) {
+                size = 10;
+            }
+            if (size > 100) {
+                size = 100; // Max page size
+            }
+
+            PaginatedResponse<InvestmentResponse> paginatedResponse = firebaseService.getAllInvestmentsPaginated(page, size);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", paginatedResponse.getData());
+            response.put("pagination", Map.of(
+                "page", paginatedResponse.getPage(),
+                "size", paginatedResponse.getSize(),
+                "totalElements", paginatedResponse.getTotalElements(),
+                "totalPages", paginatedResponse.getTotalPages(),
+                "hasNext", paginatedResponse.isHasNext(),
+                "hasPrevious", paginatedResponse.isHasPrevious()
+            ));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Failed to fetch investments");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getInvestmentById(@PathVariable String id) {
+        try {
+            InvestmentResponse investment = firebaseService.getInvestmentById(id);
+            
+            if (investment == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("error", "Investment not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", investment);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Failed to fetch investment");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+}
+
