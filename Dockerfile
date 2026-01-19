@@ -11,13 +11,19 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Runtime stage
-FROM eclipse-temurin:17-jre-alpine
+# Runtime stage - Using Debian-based image instead of Alpine to avoid native library issues
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-# Create a non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
+# Install curl for healthcheck and create non-root user (must be done as root)
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -r spring && \
+    useradd -r -g spring spring
+
+# Switch to non-root user
 USER spring:spring
 
 # Copy the JAR from build stage
@@ -26,9 +32,9 @@ COPY --from=build /app/target/Investment-0.0.1-SNAPSHOT.jar app.jar
 # Expose port (Render will set PORT env variable)
 EXPOSE 8080
 
-# Health check
+# Health check (using curl which is available in Debian images)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-8080}/api/ping || exit 1
+  CMD curl -f http://localhost:${PORT:-8080}/api/ping || exit 1
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
