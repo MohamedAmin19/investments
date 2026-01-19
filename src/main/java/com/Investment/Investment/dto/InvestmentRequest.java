@@ -32,9 +32,6 @@ public class InvestmentRequest {
     
     private String professionOther; // Only required if profession is "Other"
     
-    @NotBlank(message = "Investment background is required")
-    private String investmentBackground;
-    
     @NotNull(message = "Current investments are required")
     @NotEmpty(message = "At least one current investment must be selected")
     private List<String> currentInvestments;

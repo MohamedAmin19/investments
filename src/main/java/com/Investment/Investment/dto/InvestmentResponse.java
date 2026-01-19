@@ -21,7 +21,6 @@ public class InvestmentResponse {
     private String emailAddress;
     private String profession;
     private String professionOther;
-    private String investmentBackground;
     private List<String> currentInvestments;
     private String mostInterestedIn;
     private Long createdAt;
