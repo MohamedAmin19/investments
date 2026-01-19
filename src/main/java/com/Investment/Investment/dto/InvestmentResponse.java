@@ -16,7 +16,7 @@ public class InvestmentResponse {
     private String firstName;
     private String middleName;
     private String lastName;
-    private Integer age;
+    private String age;
     private String mobileNumber;
     private String emailAddress;
     private String profession;

@@ -83,23 +83,14 @@ public class FirebaseService {
         }
     }
 
-    public PaginatedResponse<InvestmentResponse> getAllInvestmentsPaginated(int page, int size) {
+    public PaginatedResponse<InvestmentResponse> getAllInvestmentsPaginated(int page, int size, String firstName, String lastName, String middleName) {
         try {
             CollectionReference investmentsRef = firestore.collection(COLLECTION_NAME);
             
-            // Get total count
-            ApiFuture<QuerySnapshot> countFuture = investmentsRef.get();
-            QuerySnapshot countSnapshot = countFuture.get();
-            long totalElements = countSnapshot.size();
+            // Build query with filters
+            Query query = investmentsRef.orderBy("createdAt", Query.Direction.DESCENDING);
             
-            // Calculate pagination
-            int totalPages = (int) Math.ceil((double) totalElements / size);
-            
-            // Fetch all documents and paginate in memory (Firestore doesn't support offset directly)
-            // For better performance with large datasets, consider using startAfter() with document snapshots
-            Query query = investmentsRef
-                    .orderBy("createdAt", Query.Direction.DESCENDING);
-            
+            // Fetch all documents
             ApiFuture<QuerySnapshot> future = query.get();
             QuerySnapshot snapshot = future.get();
 
@@ -107,10 +98,39 @@ public class FirebaseService {
             for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
                 InvestmentResponse response = mapToInvestmentResponse(document);
                 if (response != null) {
-                    allInvestments.add(response);
+                    // Apply name filters (case-insensitive partial match)
+                    boolean matchesFilter = true;
+                    
+                    if (firstName != null && !firstName.trim().isEmpty()) {
+                        String docFirstName = response.getFirstName();
+                        matchesFilter = matchesFilter && docFirstName != null && 
+                                       docFirstName.toLowerCase().contains(firstName.toLowerCase().trim());
+                    }
+                    
+                    if (lastName != null && !lastName.trim().isEmpty()) {
+                        String docLastName = response.getLastName();
+                        matchesFilter = matchesFilter && docLastName != null && 
+                                      docLastName.toLowerCase().contains(lastName.toLowerCase().trim());
+                    }
+                    
+                    if (middleName != null && !middleName.trim().isEmpty()) {
+                        String docMiddleName = response.getMiddleName();
+                        matchesFilter = matchesFilter && docMiddleName != null && 
+                                      docMiddleName.toLowerCase().contains(middleName.toLowerCase().trim());
+                    }
+                    
+                    if (matchesFilter) {
+                        allInvestments.add(response);
+                    }
                 }
             }
 
+            // Get total count after filtering
+            long totalElements = allInvestments.size();
+            
+            // Calculate pagination
+            int totalPages = (int) Math.ceil((double) totalElements / size);
+            
             // Calculate pagination bounds
             int startIndex = page * size;
             int endIndex = Math.min(startIndex + size, allInvestments.size());
@@ -157,6 +177,26 @@ public class FirebaseService {
         }
     }
 
+    public boolean deleteInvestment(String id) {
+        try {
+            DocumentReference investmentRef = firestore.collection(COLLECTION_NAME).document(id);
+            ApiFuture<DocumentSnapshot> future = investmentRef.get();
+            DocumentSnapshot document = future.get();
+
+            if (document.exists()) {
+                investmentRef.delete().get();
+                return true;
+            } else {
+                return false;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error deleting investment", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting investment", e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private InvestmentResponse mapToInvestmentResponse(DocumentSnapshot document) {
         try {
@@ -166,11 +206,17 @@ public class FirebaseService {
             }
 
             Object ageValue = data.get("age");
-            Integer age = null;
-            if (ageValue instanceof Long) {
-                age = ((Long) ageValue).intValue();
-            } else if (ageValue instanceof Integer) {
-                age = (Integer) ageValue;
+            String age = null;
+            if (ageValue != null) {
+                if (ageValue instanceof String) {
+                    age = (String) ageValue;
+                } else if (ageValue instanceof Long) {
+                    age = String.valueOf(ageValue);
+                } else if (ageValue instanceof Integer) {
+                    age = String.valueOf(ageValue);
+                } else {
+                    age = ageValue.toString();
+                }
             }
 
             Object currentInvestmentsValue = data.get("currentInvestments");
