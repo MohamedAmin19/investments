@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import jakarta.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
@@ -20,26 +21,17 @@ public class FirebaseConfig {
     @Value("${firebase.credentials.path:}")
     private String credentialsPath;
 
+    @Value("${firebase.credentials.json:}")
+    private String credentialsJson;
+
     @PostConstruct
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseOptions.Builder builder = FirebaseOptions.builder();
 
-                // Load credentials from file path or classpath
-                InputStream serviceAccount;
-                if (credentialsPath != null && !credentialsPath.isEmpty()) {
-                    // Try as file path first
-                    try {
-                        serviceAccount = new FileInputStream(credentialsPath);
-                    } catch (Exception e) {
-                        // If file path fails, try as classpath resource
-                        serviceAccount = new ClassPathResource(credentialsPath).getInputStream();
-                    }
-                } else {
-                    // Default to serviceAccountKey.json in resources
-                    serviceAccount = new ClassPathResource("serviceAccountKey.json").getInputStream();
-                }
+                // Load credentials with priority: Environment variable > File path > Classpath resource
+                InputStream serviceAccount = getCredentialsInputStream();
 
                 GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
                 builder.setCredentials(credentials);
@@ -49,6 +41,36 @@ public class FirebaseConfig {
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize Firebase: " + e.getMessage(), e);
+        }
+    }
+
+    private InputStream getCredentialsInputStream() throws Exception {
+        // Priority 1: Environment variable (FIREBASE_CREDENTIALS_JSON) - for Docker/Render
+        if (credentialsJson != null && !credentialsJson.trim().isEmpty()) {
+            return new ByteArrayInputStream(credentialsJson.getBytes());
+        }
+
+        // Priority 2: File path from configuration
+        if (credentialsPath != null && !credentialsPath.trim().isEmpty()) {
+            try {
+                return new FileInputStream(credentialsPath);
+            } catch (Exception e) {
+                // If file path fails, try as classpath resource
+                try {
+                    return new ClassPathResource(credentialsPath).getInputStream();
+                } catch (Exception ex) {
+                    // Continue to default
+                }
+            }
+        }
+
+        // Priority 3: Default classpath resource
+        try {
+            return new ClassPathResource("serviceAccountKey.json").getInputStream();
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Firebase credentials not found. Please set FIREBASE_CREDENTIALS_JSON environment variable " +
+                "or provide serviceAccountKey.json file.", e);
         }
     }
 

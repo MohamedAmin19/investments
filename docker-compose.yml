@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  investment-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: investment-api
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - SPRING_PROFILES_ACTIVE=production
+      - FIREBASE_CREDENTIALS_JSON=${FIREBASE_CREDENTIALS_JSON}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=86400000
+    volumes:
+      # Mount serviceAccountKey.json if using file-based auth (for local dev)
+      - ./src/main/resources/serviceAccountKey.json:/app/serviceAccountKey.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
