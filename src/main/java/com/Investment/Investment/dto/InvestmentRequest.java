@@ -16,10 +16,8 @@ public class InvestmentRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
     
-    @NotNull(message = "Age is required")
-    @Min(value = 1, message = "Age must be greater than 0")
-    @Max(value = 150, message = "Age must be less than 150")
-    private Integer age;
+    @NotBlank(message = "Age is required")
+    private String age;
     
     @NotBlank(message = "Mobile number is required")
     @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Mobile number must be valid")
