@@ -20,7 +20,6 @@ public class InvestmentRequest {
     private String age;
     
     @NotBlank(message = "Mobile number is required")
-    @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Mobile number must be valid")
     private String mobileNumber;
     
     @NotBlank(message = "Email address is required")
