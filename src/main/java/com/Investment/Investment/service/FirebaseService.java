@@ -82,7 +82,7 @@ public class FirebaseService {
         }
     }
 
-    public PaginatedResponse<InvestmentResponse> getAllInvestmentsPaginated(int page, int size, String firstName, String lastName, String middleName) {
+    public PaginatedResponse<InvestmentResponse> getAllInvestmentsPaginated(int page, int size, String name) {
         try {
             CollectionReference investmentsRef = firestore.collection(COLLECTION_NAME);
             
@@ -97,25 +97,19 @@ public class FirebaseService {
             for (QueryDocumentSnapshot document : snapshot.getDocuments()) {
                 InvestmentResponse response = mapToInvestmentResponse(document);
                 if (response != null) {
-                    // Apply name filters (case-insensitive partial match)
+                    // Apply name filter - search across firstName, lastName, and middleName
                     boolean matchesFilter = true;
                     
-                    if (firstName != null && !firstName.trim().isEmpty()) {
-                        String docFirstName = response.getFirstName();
-                        matchesFilter = matchesFilter && docFirstName != null && 
-                                       docFirstName.toLowerCase().contains(firstName.toLowerCase().trim());
-                    }
-                    
-                    if (lastName != null && !lastName.trim().isEmpty()) {
-                        String docLastName = response.getLastName();
-                        matchesFilter = matchesFilter && docLastName != null && 
-                                      docLastName.toLowerCase().contains(lastName.toLowerCase().trim());
-                    }
-                    
-                    if (middleName != null && !middleName.trim().isEmpty()) {
-                        String docMiddleName = response.getMiddleName();
-                        matchesFilter = matchesFilter && docMiddleName != null && 
-                                      docMiddleName.toLowerCase().contains(middleName.toLowerCase().trim());
+                    if (name != null && !name.trim().isEmpty()) {
+                        String searchTerm = name.toLowerCase().trim();
+                        String docFirstName = response.getFirstName() != null ? response.getFirstName().toLowerCase() : "";
+                        String docLastName = response.getLastName() != null ? response.getLastName().toLowerCase() : "";
+                        String docMiddleName = response.getMiddleName() != null ? response.getMiddleName().toLowerCase() : "";
+                        
+                        // Check if search term matches any of the three name fields
+                        matchesFilter = docFirstName.contains(searchTerm) || 
+                                       docLastName.contains(searchTerm) || 
+                                       docMiddleName.contains(searchTerm);
                     }
                     
                     if (matchesFilter) {

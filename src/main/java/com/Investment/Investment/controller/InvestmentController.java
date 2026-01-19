@@ -53,9 +53,7 @@ public class InvestmentController {
     public ResponseEntity<Map<String, Object>> getAllInvestments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName,
-            @RequestParam(required = false) String middleName) {
+            @RequestParam(required = false) String name) {
         try {
             // Validate pagination parameters
             if (page < 0) {
@@ -68,7 +66,7 @@ public class InvestmentController {
                 size = 100; // Max page size
             }
 
-            PaginatedResponse<InvestmentResponse> paginatedResponse = firebaseService.getAllInvestmentsPaginated(page, size, firstName, lastName, middleName);
+            PaginatedResponse<InvestmentResponse> paginatedResponse = firebaseService.getAllInvestmentsPaginated(page, size, name);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
