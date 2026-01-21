@@ -35,6 +35,8 @@ public class InvestmentRequest {
     @NotEmpty(message = "At least one current investment must be selected")
     private List<String> currentInvestments;
     
+    private String currentInvestmentsOther; // Only required if currentInvestments contains "Other"
+    
     @NotBlank(message = "Interest area is required")
     private String mostInterestedIn;
 }

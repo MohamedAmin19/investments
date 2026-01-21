@@ -42,6 +42,9 @@ public class FirebaseService {
                 investmentData.put("professionOther", request.getProfessionOther());
             }
             investmentData.put("currentInvestments", request.getCurrentInvestments());
+            if (request.getCurrentInvestmentsOther() != null && !request.getCurrentInvestmentsOther().isEmpty()) {
+                investmentData.put("currentInvestmentsOther", request.getCurrentInvestmentsOther());
+            }
             investmentData.put("mostInterestedIn", request.getMostInterestedIn());
             investmentData.put("createdAt", System.currentTimeMillis());
             investmentData.put("updatedAt", System.currentTimeMillis());
@@ -229,6 +232,7 @@ public class FirebaseService {
                     .profession((String) data.get("profession"))
                     .professionOther((String) data.get("professionOther"))
                     .currentInvestments(currentInvestments)
+                    .currentInvestmentsOther((String) data.get("currentInvestmentsOther"))
                     .mostInterestedIn((String) data.get("mostInterestedIn"))
                     .createdAt((Long) data.get("createdAt"))
                     .updatedAt((Long) data.get("updatedAt"))

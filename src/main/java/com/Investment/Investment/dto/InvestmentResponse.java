@@ -22,6 +22,7 @@ public class InvestmentResponse {
     private String profession;
     private String professionOther;
     private List<String> currentInvestments;
+    private String currentInvestmentsOther;
     private String mostInterestedIn;
     private Long createdAt;
     private Long updatedAt;

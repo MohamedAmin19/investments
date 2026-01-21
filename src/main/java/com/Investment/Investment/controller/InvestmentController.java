@@ -32,6 +32,15 @@ public class InvestmentController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
+            if (request.getCurrentInvestments() != null && 
+                request.getCurrentInvestments().stream().anyMatch(inv -> "Other".equalsIgnoreCase(inv)) &&
+                (request.getCurrentInvestmentsOther() == null || request.getCurrentInvestmentsOther().trim().isEmpty())) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "currentInvestmentsOther is required when currentInvestments contains 'Other'");
+                errorResponse.put("message", "If currentInvestments contains 'Other', you must provide a value for currentInvestmentsOther");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
             String id = firebaseService.saveInvestment(request);
             
             Map<String, Object> response = new HashMap<>();
