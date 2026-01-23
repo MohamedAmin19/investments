@@ -49,7 +49,7 @@ public class InvestmentController {
             
             // Send email notification to the user
             try {
-                emailService.sendRegistrationEmail(request.getEmailAddress());
+                emailService.sendReservationEmail(request.getEmailAddress(),request.getFirstName());
             } catch (Exception e) {
                 // Log error but don't fail the request if email fails
                 System.err.println("Email sending failed: " + e.getMessage());
