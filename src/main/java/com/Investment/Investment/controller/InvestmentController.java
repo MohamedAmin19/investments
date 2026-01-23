@@ -4,6 +4,7 @@ import com.Investment.Investment.dto.InvestmentRequest;
 import com.Investment.Investment.dto.InvestmentResponse;
 import com.Investment.Investment.dto.PaginatedResponse;
 import com.Investment.Investment.service.FirebaseService;
+import com.Investment.Investment.service.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class InvestmentController {
 
     @Autowired
     private FirebaseService firebaseService;
+
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createInvestment(@Valid @RequestBody InvestmentRequest request) {
@@ -42,6 +46,14 @@ public class InvestmentController {
             }
 
             String id = firebaseService.saveInvestment(request);
+            
+            // Send email notification to the user
+            try {
+                emailService.sendRegistrationEmail(request.getEmailAddress());
+            } catch (Exception e) {
+                // Log error but don't fail the request if email fails
+                System.err.println("Email sending failed: " + e.getMessage());
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
