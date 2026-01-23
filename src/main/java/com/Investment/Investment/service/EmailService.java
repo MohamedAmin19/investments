@@ -14,7 +14,6 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 
 import java.io.IOException;
-
 import org.springframework.stereotype.Service;
 
 @Service
