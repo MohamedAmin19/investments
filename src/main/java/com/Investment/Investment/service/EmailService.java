@@ -26,18 +26,18 @@ public class EmailService {
         String subject = "Registration Confirmation - Money Made Simple";
         String body = """
                 Thank you for your interest in Money Made Simple, organized by  the Egyptian Exchange (EGX) and Cairo Capital Group.
-        
+
                 We have received your registration. Due to high demand, attendance is subject to a waiting list. Please keep an eye on your email and WhatsApp for confirmation and further details.
-        
+
                 Best regards,
-                EGX & Cairo Capital Group
-        
-                شكرًا لاهتمامكم بفعالية "Money Made Simple"، التي تنظمها البورصة المصرية (EGX) ومجموعة كايرو كابيتال.
-        
+                EGX & Cairo Capital Group Team
+
+                شكرًا لاهتمامكم بفعالية “Money Made Simple”، التي تنظمها البورصة المصرية (EGX) ومجموعة كايرو كابيتال.
+
                 نود إعلامكم بأنه تم استلام تسجيلكم. ونظرًا للإقبال الكبير، فإن الحضور يخضع لقائمة انتظار. يُرجى متابعة بريدكم الإلكتروني وتطبيق واتساب للحصول على تأكيد الحضور وكافة التفاصيل لاحقًا.
-        
+
                 مع خالص التحية،
-                فريق البورصة المصرية (EGX) ومجموعة كايرو كابيتا
+                فريق البورصة المصرية (EGX) ومجموعة كايرو كابيتال
                 """;
 
 
