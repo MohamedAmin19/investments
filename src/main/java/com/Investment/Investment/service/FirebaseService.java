@@ -258,15 +258,16 @@ public class FirebaseService {
                         String filterValue = influencer.replace("+", " ").trim();
                         Map<String, Object> data = document.getData();
                         String docInfluencerId = data != null ? (String) data.get("influencerId") : null;
+                        String docReferredBy = response.getReferredBy();
                         
                         // Check if filtering by "CCG" (the default influencer with no ID)
                         if (filterValue.equalsIgnoreCase("CCG")) {
                             // CCG registrations have no influencerId but referredBy = "CCG"
-                            String docReferredBy = response.getReferredBy();
                             matchesFilter = "CCG".equalsIgnoreCase(docReferredBy) && docInfluencerId == null;
                         } else {
-                            // Filter by influencer ID (stored in Firestore but not returned in response)
-                            matchesFilter = docInfluencerId != null && docInfluencerId.equalsIgnoreCase(filterValue);
+                            // Filter by influencer ID or by referredBy name (case-insensitive)
+                            matchesFilter = (docInfluencerId != null && docInfluencerId.equalsIgnoreCase(filterValue)) ||
+                                           (docReferredBy != null && docReferredBy.equalsIgnoreCase(filterValue));
                         }
                     }
                     
