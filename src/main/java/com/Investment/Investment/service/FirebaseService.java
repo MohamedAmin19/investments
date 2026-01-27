@@ -33,7 +33,7 @@ public class FirebaseService {
     
     static {
         PREDEFINED_INFLUENCERS.put("SH7X9K2M4PLQ", "Sherine hamdy");
-        PREDEFINED_INFLUENCERS.put("HR3B8N5W2JKF", "Hasem rasmy");
+        PREDEFINED_INFLUENCERS.put("HR3B8N5W2JKF", "Hazem rasmy");
         PREDEFINED_INFLUENCERS.put("FN6C4T9R1VXZ", "Farah nofal");
         PREDEFINED_INFLUENCERS.put("AT2Y7H3D8MNP", "Ahmed talaat");
         PREDEFINED_INFLUENCERS.put("KS5L9Q4G6BWC", "Khaled el sayed");
@@ -160,11 +160,14 @@ public class FirebaseService {
             // Handle influencer ID from URL query parameter
             // Note: Invalid codes are rejected at controller level with 400 Bad Request
             if (influencerId != null && !influencerId.trim().isEmpty()) {
-                String normalizedId = influencerId.trim().toUpperCase();
+                // Replace + with space (URL encoding) and normalize
+                String normalizedId = influencerId.replace("+", " ").trim().toUpperCase();
                 
                 // Look up the influencer name for this ID (already validated in controller)
                 String influencerName = getInfluencerNameById(normalizedId);
                 if (influencerName != null) {
+                    // Ensure influencer name has spaces instead of +
+                    influencerName = influencerName.replace("+", " ");
                     investmentData.put("influencerId", normalizedId);
                     investmentData.put("referredBy", influencerName);
                 }
@@ -238,7 +241,8 @@ public class FirebaseService {
                     
                     // Apply name filter - search across firstName, lastName, and middleName
                     if (name != null && !name.trim().isEmpty()) {
-                        String searchTerm = name.toLowerCase().trim();
+                        // Replace + with space (URL encoding)
+                        String searchTerm = name.replace("+", " ").toLowerCase().trim();
                         String docFirstName = response.getFirstName() != null ? response.getFirstName().toLowerCase() : "";
                         String docLastName = response.getLastName() != null ? response.getLastName().toLowerCase() : "";
                         String docMiddleName = response.getMiddleName() != null ? response.getMiddleName().toLowerCase() : "";
@@ -250,7 +254,8 @@ public class FirebaseService {
                     
                     // Apply influencer filter
                     if (matchesFilter && influencer != null && !influencer.trim().isEmpty()) {
-                        String filterValue = influencer.trim();
+                        // Replace + with space (URL encoding)
+                        String filterValue = influencer.replace("+", " ").trim();
                         Map<String, Object> data = document.getData();
                         String docInfluencerId = data != null ? (String) data.get("influencerId") : null;
                         
@@ -371,6 +376,12 @@ public class FirebaseService {
                 currentInvestments = (List<String>) currentInvestmentsValue;
             }
 
+            // Get referredBy and replace + with space (URL encoding)
+            String referredBy = (String) data.get("referredBy");
+            if (referredBy != null) {
+                referredBy = referredBy.replace("+", " ");
+            }
+
             return InvestmentResponse.builder()
                     .id(document.getId())
                     .firstName((String) data.get("firstName"))
@@ -386,7 +397,7 @@ public class FirebaseService {
                     .mostInterestedIn((String) data.get("mostInterestedIn"))
                     .createdAt((Long) data.get("createdAt"))
                     .updatedAt((Long) data.get("updatedAt"))
-                    .referredBy((String) data.get("referredBy"))
+                    .referredBy(referredBy)
                     .build();
         } catch (Exception e) {
             throw new RuntimeException("Error mapping investment data", e);
