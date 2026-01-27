@@ -38,7 +38,6 @@ public class FirebaseService {
         PREDEFINED_INFLUENCERS.put("AT2Y7H3D8MNP", "Ahmed talaat");
         PREDEFINED_INFLUENCERS.put("KS5L9Q4G6BWC", "Khaled el sayed");
         PREDEFINED_INFLUENCERS.put("AR8F2K7J3XHT", "Ahmed rashad");
-        // CCG has no ID - it's the default (no ref parameter needed)
         PREDEFINED_INFLUENCERS.put("PS4W6M9N1YRV", "POSH");
         PREDEFINED_INFLUENCERS.put("EX7Q3K8L2CTB", "EGX");
         PREDEFINED_INFLUENCERS.put("CL9P5H4D6ZJN", "COLLAB");
