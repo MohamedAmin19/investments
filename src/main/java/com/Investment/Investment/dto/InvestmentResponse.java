@@ -26,5 +26,8 @@ public class InvestmentResponse {
     private String mostInterestedIn;
     private Long createdAt;
     private Long updatedAt;
+    
+    // Influencer referral tracking
+    private String referredBy;        // The influencer name who referred this user
 }
 

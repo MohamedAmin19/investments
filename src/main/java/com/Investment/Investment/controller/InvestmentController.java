@@ -25,9 +25,31 @@ public class InvestmentController {
     @Autowired
     private EmailService emailService;
 
+    /**
+     * Create a new investment registration
+     * 
+     * @param request The registration form data
+     * @param ref Optional referral code from URL (e.g., POST /api/investments?ref=SH7X9K2M4PLQ)
+     *            This tracks which influencer referred the user.
+     *            If not provided, defaults to CCG.
+     *            If provided but invalid, returns 400 Bad Request.
+     */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createInvestment(@Valid @RequestBody InvestmentRequest request) {
+    public ResponseEntity<Map<String, Object>> createInvestment(
+            @Valid @RequestBody InvestmentRequest request,
+            @RequestParam(required = false) String ref) {
         try {
+            // Validate referral code if provided
+            if (ref != null && !ref.trim().isEmpty()) {
+                if (!firebaseService.isValidInfluencerId(ref.trim())) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("success", false);
+                    errorResponse.put("error", "Invalid referral code");
+                    errorResponse.put("message", "The referral code '" + ref + "' is not valid");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+            }
+
             if ("Other".equalsIgnoreCase(request.getProfession()) && 
                 (request.getProfessionOther() == null || request.getProfessionOther().trim().isEmpty())) {
                 Map<String, Object> errorResponse = new HashMap<>();
@@ -45,7 +67,7 @@ public class InvestmentController {
                 return ResponseEntity.badRequest().body(errorResponse);
             }
 
-            String id = firebaseService.saveInvestment(request);
+            String id = firebaseService.saveInvestment(request, ref);
             
             // Send email notification to the user
             try {
@@ -70,11 +92,20 @@ public class InvestmentController {
         }
     }
 
+    /**
+     * Get all investments with pagination and optional filters
+     * 
+     * @param page Page number (0-indexed)
+     * @param size Page size (max 100)
+     * @param name Optional filter by name (searches firstName, lastName, middleName)
+     * @param influencer Optional filter by influencer ID (e.g., INF001, INF002, etc.)
+     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllInvestments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String name) {
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String influencer) {
         try {
             // Validate pagination parameters
             if (page < 0) {
@@ -87,7 +118,7 @@ public class InvestmentController {
                 size = 100; // Max page size
             }
 
-            PaginatedResponse<InvestmentResponse> paginatedResponse = firebaseService.getAllInvestmentsPaginated(page, size, name);
+            PaginatedResponse<InvestmentResponse> paginatedResponse = firebaseService.getAllInvestmentsPaginated(page, size, name, influencer);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
